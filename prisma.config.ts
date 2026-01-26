@@ -9,6 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL"] || "mongodb+srv://jupli503:jupli123@cluster0.toef1.mongodb.net/modulPO?appName=Cluster0",
   },
 });
