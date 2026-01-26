@@ -12,7 +12,7 @@ model Product {
   sku         String   @unique
   description String?
   quantity    Int      @default(0)
-  price       Decimal  @default(0)
+  price       Float    @default(0)
   unit        String   @default("pcs")
   category    String?
   createdAt   DateTime @default(now())
@@ -50,7 +50,7 @@ model PurchaseOrder {
   supplier    Supplier @relation(fields: [supplierId], references: [id])
   date        DateTime @default(now())
   status      POStatus @default(PENDING)
-  totalAmount Decimal  @default(0)
+  totalAmount Float    @default(0)
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -65,8 +65,8 @@ model PurchaseOrderItem {
   productId       String        @db.ObjectId
   product         Product       @relation(fields: [productId], references: [id])
   quantity        Int
-  unitPrice       Decimal
-  total           Decimal
+  unitPrice       Float
+  total           Float
 }
 
 enum MovementType {
