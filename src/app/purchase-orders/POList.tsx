@@ -89,7 +89,7 @@ export default function POList({ purchaseOrders }: { purchaseOrders: PurchaseOrd
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {suppliers.map((supplierName) => {
         const count = groupedPOs[supplierName].length
-        const totalValue = groupedPOs[supplierName].reduce((sum, po) => sum + Number(po.totalAmount), 0)
+        const totalValue = groupedPOs[supplierName].reduce((sum: number, po: PurchaseOrder) => sum + Number(po.totalAmount), 0)
         
         return (
           <div 

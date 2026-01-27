@@ -110,7 +110,7 @@ export async function updatePOStatus(id: string, status: POStatus) {
 
     // If status is changed to RECEIVED, update inventory
     if (status === 'RECEIVED' && po.status !== 'RECEIVED') {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Update PO status
         await tx.purchaseOrder.update({
           where: { id },
