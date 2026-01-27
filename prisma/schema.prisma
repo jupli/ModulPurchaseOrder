@@ -90,6 +90,7 @@ model GoodsReceiptItem {
   productId       String       @db.ObjectId
   product         Product      @relation(fields: [productId], references: [id])
   quantity        Int
+  quantityRejected Int      @default(0)
   condition       String?
 }
 

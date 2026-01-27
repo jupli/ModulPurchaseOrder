@@ -116,7 +116,7 @@ export async function createGoodsReceipt(data: {
   courierSign: string
   condition: string
   notes?: string
-  items: { productId: string, quantity: number, condition?: string }[]
+  items: { productId: string, quantity: number, quantityRejected?: number, condition?: string }[]
 }) {
   try {
     const result = await prisma.$transaction(async (tx: any) => {
@@ -136,6 +136,7 @@ export async function createGoodsReceipt(data: {
             create: data.items.map((item: any) => ({
               productId: item.productId,
               quantity: item.quantity,
+              quantityRejected: item.quantityRejected || 0,
               condition: item.condition
             }))
           }
@@ -145,26 +146,70 @@ export async function createGoodsReceipt(data: {
       // 2. Update PO Status to RECEIVED
       const po = await tx.purchaseOrder.update({
         where: { id: data.poId },
-        data: { status: 'RECEIVED' }
+        data: { status: 'RECEIVED' },
+        include: { items: true }
       })
 
       // 3. Update Inventory & Create Stock Movement
       for (const item of data.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            quantity: { increment: item.quantity }
-          }
-        })
+        if (item.quantity > 0) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                quantity: { increment: item.quantity }
+              }
+            })
 
-        await tx.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: MovementType.IN,
-            quantity: item.quantity,
-            reference: `${po.poNumber} / ${data.doNumber}`,
-            description: `Received via Goods Receipt (DO: ${data.doNumber})`
-          }
+            await tx.stockMovement.create({
+              data: {
+                productId: item.productId,
+                type: MovementType.IN,
+                quantity: item.quantity,
+                reference: `${po.poNumber} / ${data.doNumber}`,
+                description: `Received via Goods Receipt (DO: ${data.doNumber})`
+              }
+            })
+        }
+      }
+
+      // 4. Handle Returns (Auto-Create Replacement PO)
+      const rejectedItems = data.items.filter((i: any) => i.quantityRejected && i.quantityRejected > 0)
+      
+      if (rejectedItems.length > 0) {
+        const newPOItems = rejectedItems.map((rejItem: any) => {
+             const originalItem = po.items.find((i: any) => i.productId === rejItem.productId)
+             const unitPrice = originalItem ? Number(originalItem.unitPrice) : 0
+             const qty = Number(rejItem.quantityRejected)
+             return {
+                 productId: rejItem.productId,
+                 quantity: qty,
+                 unitPrice: unitPrice,
+                 total: qty * unitPrice
+             }
+        })
+        
+        const totalAmount = newPOItems.reduce((sum: number, item: any) => sum + item.total, 0)
+        
+        // Create unique PO Retur Number
+        // Format: PO-RET-[Original-Suffix]
+        const originalSuffix = po.poNumber.split('-').slice(1).join('-') // Remove first 'PO'
+        const poNumber = `PO-RET-${originalSuffix}`
+        
+        await tx.purchaseOrder.create({
+            data: {
+                poNumber: poNumber,
+                supplierId: po.supplierId,
+                status: 'PENDING', // Needs approval before sending to supplier
+                totalAmount: totalAmount,
+                items: {
+                    create: newPOItems.map((item: any) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        total: item.total
+                    }))
+                }
+            }
         })
       }
 

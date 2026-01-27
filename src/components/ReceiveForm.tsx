@@ -22,6 +22,7 @@ export default function ReceiveForm({ po }: { po: any }) {
     productId: item.productId,
     productName: item.product.name,
     quantity: item.quantity, // Default to PO quantity
+    quantityRejected: 0,
     condition: 'Baik'
   })))
 
@@ -59,6 +60,7 @@ export default function ReceiveForm({ po }: { po: any }) {
         items: items.map((item: any) => ({
           productId: item.productId,
           quantity: Number(item.quantity),
+          quantityRejected: Number(item.quantityRejected),
           condition: item.condition
         }))
       })
@@ -145,7 +147,8 @@ export default function ReceiveForm({ po }: { po: any }) {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Barang</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty PO</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty Diterima</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty Diterima (Bagus)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty Rusak (Retur)</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kondisi</th>
               </tr>
             </thead>
@@ -165,6 +168,19 @@ export default function ReceiveForm({ po }: { po: any }) {
                         setItems(newItems)
                       }}
                       className="w-24 border border-gray-300 rounded-md px-2 py-1"
+                    />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={item.quantityRejected}
+                      onChange={(e) => {
+                        const newItems = [...items]
+                        newItems[idx].quantityRejected = Number(e.target.value)
+                        setItems(newItems)
+                      }}
+                      className="w-24 border border-red-300 rounded-md px-2 py-1 bg-red-50"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
