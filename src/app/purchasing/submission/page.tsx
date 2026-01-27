@@ -3,6 +3,7 @@
 import { usePurchasing } from '@/context/PurchasingContext'
 import { useState, useRef } from 'react'
 import SignatureCanvas from 'react-signature-canvas'
+import { generatePOsFromRequest } from '@/app/actions/generate-po'
 
 export default function PurchaseSubmissionPage() {
   const { requests, rejectRequest, updateRequestSignature } = usePurchasing()
@@ -28,11 +29,30 @@ export default function PurchaseSubmissionPage() {
     }
   }
 
-  const handleCreatePO = () => {
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const handleCreatePO = async () => {
+    if (!currentRequest) return
+
     if (confirm('Apakah Anda yakin ingin membuat Purchase Order dari pengajuan ini?')) {
-      // Logic to create PO will go here
-      alert('Purchase Order berhasil dibuat!')
-      setSelectedPdf(null)
+      try {
+        setIsGenerating(true)
+        const result = await generatePOsFromRequest(currentRequest.requestNumber, currentRequest.items)
+        
+        if (result.success) {
+          alert(result.message)
+          // Optionally move the request to 'completed' or 'approved' state if you have such logic
+          // For now just close the modal
+          setSelectedPdf(null)
+        } else {
+          alert(result.message)
+        }
+      } catch (error) {
+        console.error('Error creating POs:', error)
+        alert('Terjadi kesalahan saat membuat Purchase Order.')
+      } finally {
+        setIsGenerating(false)
+      }
     }
   }
 
@@ -204,12 +224,20 @@ export default function PurchaseSubmissionPage() {
               {currentRequest?.managerSignature && currentRequest?.purchasingSignature && (
                 <button 
                   onClick={handleCreatePO}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center space-x-2"
+                  disabled={isGenerating}
+                  className={`bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center space-x-2 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Buat PO</span>
+                  {isGenerating ? (
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  <span>{isGenerating ? 'Memproses...' : 'Buat PO'}</span>
                 </button>
               )}
             </div>
