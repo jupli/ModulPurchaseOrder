@@ -18,7 +18,7 @@ export default function POList({ purchaseOrders }: { purchaseOrders: PurchaseOrd
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null)
 
   // 1. Group POs by Date (YYYY-MM-DD)
-  const groupedByDate = purchaseOrders.reduce((acc, po) => {
+  const groupedByDate = purchaseOrders.reduce((acc: Record<string, PurchaseOrder[]>, po: PurchaseOrder) => {
     const dateKey = new Date(po.date).toISOString().split('T')[0]
     if (!acc[dateKey]) {
       acc[dateKey] = []
@@ -34,7 +34,7 @@ export default function POList({ purchaseOrders }: { purchaseOrders: PurchaseOrd
   const datePOs = selectedDate ? groupedByDate[selectedDate] : []
 
   // 2. Within Date, Group POs by Supplier Name
-  const groupedBySupplier = datePOs.reduce((acc, po) => {
+  const groupedBySupplier = datePOs.reduce((acc: Record<string, PurchaseOrder[]>, po: PurchaseOrder) => {
     const supplierName = po.supplier.name
     if (!acc[supplierName]) {
       acc[supplierName] = []
