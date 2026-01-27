@@ -45,7 +45,7 @@ export const ITEM_CATEGORIES = {
     'Mozzarella', 'Parmesan', 'Yogurt', 'Mentega', 'Butter', 'Margarin', 'Cream', 'Ice Cream'
   ],
   'Supplier Beras': [
-    'Beras Putih', 'Beras IR', 'Beras medium', 'Beras premium', 'Beras pandan wangi',
+    'Beras', 'Beras Putih', 'Beras IR', 'Beras medium', 'Beras premium', 'Beras pandan wangi',
     'Beras rojolele', 'Beras mentik wangi', 'Beras cisadane', 'Beras long grain', 'Beras short grain',
     'Beras Merah', 'Beras merah lokal', 'Beras merah organik', 'Beras merah pecah kulit',
     'Beras Hitam', 'Beras hitam lokal', 'Beras hitam organic',
