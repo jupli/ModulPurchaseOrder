@@ -52,6 +52,11 @@ export const ITEM_CATEGORIES = {
     'Beras Basmati',
     'Ketan', 'Ketan putih', 'Ketan hitam'
   ],
+  'Supplier Air Minum Kemasan': [
+    'Air mineral gelas', 'Air mineral cup', 'Air mineral botol',
+    'Air mineral botol 600 ml', 'Air mineral botol 1,5 liter',
+    'Air mineral galon 19 liter', 'Air Galon', 'Air Mineral'
+  ],
   'Supplier Bumbu': [
     'Garam', 'Gula', 'Kaldu bubuk', 'Merica', 'Ketumbar', 'Minyak goreng', 'Bawang merah', 'Bawang putih',
     'Tepung terigu', 'Tepung maizena', 'Air'
