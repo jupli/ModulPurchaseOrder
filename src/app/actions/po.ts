@@ -24,7 +24,11 @@ export async function getPurchaseOrders() {
       items: order.items.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
-        total: Number(item.total)
+        total: Number(item.total),
+        product: item.product ? {
+          ...item.product,
+          price: Number(item.product.price)
+        } : null
       }))
     }))
   } catch (error) {
@@ -55,7 +59,11 @@ export async function getPurchaseOrderById(id: string) {
       items: order.items.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
-        total: Number(item.total)
+        total: Number(item.total),
+        product: item.product ? {
+          ...item.product,
+          price: Number(item.product.price)
+        } : null
       }))
     }
   } catch (error) {
