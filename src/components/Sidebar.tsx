@@ -55,6 +55,12 @@ export default function Sidebar() {
 
         <div className="pt-4 pb-2 text-xs text-gray-400 uppercase font-semibold">Master Data</div>
         <Link 
+          href="/purchase-orders" 
+          className={`p-2 hover:bg-gray-800 rounded ${pathname.startsWith('/purchase-orders') ? 'bg-gray-800' : ''}`}
+        >
+          Purchase Orders
+        </Link>
+        <Link 
           href="/products" 
           className={`p-2 hover:bg-gray-800 rounded ${pathname.startsWith('/products') ? 'bg-gray-800' : ''}`}
         >
@@ -65,12 +71,6 @@ export default function Sidebar() {
           className={`p-2 hover:bg-gray-800 rounded ${pathname.startsWith('/suppliers') ? 'bg-gray-800' : ''}`}
         >
           Suppliers
-        </Link>
-        <Link 
-          href="/purchase-orders" 
-          className={`p-2 hover:bg-gray-800 rounded ${pathname.startsWith('/purchase-orders') ? 'bg-gray-800' : ''}`}
-        >
-          Purchase Orders
         </Link>
       </nav>
     </div>
