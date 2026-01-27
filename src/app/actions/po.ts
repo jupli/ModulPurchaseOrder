@@ -6,7 +6,7 @@ import { POStatus, MovementType } from '@prisma/client'
 
 export async function getPurchaseOrders() {
   try {
-    return await prisma.purchaseOrder.findMany({
+    const orders = await prisma.purchaseOrder.findMany({
       include: {
         supplier: true,
         items: {
@@ -17,6 +17,16 @@ export async function getPurchaseOrders() {
       },
       orderBy: { createdAt: 'desc' }
     })
+
+    return orders.map(order => ({
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      items: order.items.map(item => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.total)
+      }))
+    }))
   } catch (error) {
     console.error('Database Error:', error)
     return []
@@ -25,7 +35,7 @@ export async function getPurchaseOrders() {
 
 export async function getPurchaseOrderById(id: string) {
   try {
-    return await prisma.purchaseOrder.findUnique({
+    const order = await prisma.purchaseOrder.findUnique({
       where: { id },
       include: {
         supplier: true,
@@ -36,6 +46,18 @@ export async function getPurchaseOrderById(id: string) {
         }
       }
     })
+
+    if (!order) return null
+
+    return {
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      items: order.items.map(item => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.total)
+      }))
+    }
   } catch (error) {
     console.error('Database Error:', error)
     return null
