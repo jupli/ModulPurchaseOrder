@@ -1,17 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { POStatus } from '@prisma/client'
+import { POStatus, PurchaseOrder as PrismaPO } from '@prisma/client'
 import POStatusBadge from '../../components/POStatusBadge'
 import POActions from '../../components/POActions'
 
 // Define a type for the PO that matches what comes from the server action/Prisma
-type PurchaseOrder = {
-  id: string
-  poNumber: string
-  date: Date
-  status: POStatus
-  totalAmount: number
+type PurchaseOrder = PrismaPO & {
   supplier: {
     name: string
   }
