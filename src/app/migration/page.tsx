@@ -171,6 +171,7 @@ export default async function MigrationPage() {
       const remainingItems = await prisma.purchaseOrderItem.count({ where: { purchaseOrderId: po.id } })
       if (remainingItems === 0) {
         log(`  Deleting empty old PO ${po.poNumber}`)
+        await prisma.goodsReceipt.deleteMany({ where: { poId: po.id } })
         await prisma.purchaseOrder.delete({ where: { id: po.id } })
       } else {
         // Recalculate total for old PO
@@ -219,6 +220,7 @@ export default async function MigrationPage() {
           })
 
           // Delete empty PO
+          await prisma.goodsReceipt.deleteMany({ where: { poId: po.id } })
           await prisma.purchaseOrder.delete({ where: { id: po.id } })
         }
 
