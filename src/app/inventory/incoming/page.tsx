@@ -1,15 +1,18 @@
-import { getPurchaseOrdersByStatus } from '@/app/actions/po'
+import { getPurchaseOrdersByStatus, getReceivedPurchaseOrders } from '@/app/actions/po'
 import Link from 'next/link'
+import IncomingArchive from '@/components/IncomingArchive'
 
 export default async function IncomingPage() {
   // @ts-ignore
   const pendingArrivals = await getPurchaseOrdersByStatus('KIRIM')
+  // @ts-ignore
+  const receivedHistory = await getReceivedPurchaseOrders()
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Bahan Masuk (Incoming)</h1>
       
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Menunggu Pengiriman Tiba</h2>
           <p className="text-sm text-gray-500">Daftar Purchase Order yang sudah dikirim oleh Supplier.</p>
@@ -59,6 +62,8 @@ export default async function IncomingPage() {
           </table>
         )}
       </div>
+
+      <IncomingArchive receivedHistory={receivedHistory} />
     </div>
   )
 }

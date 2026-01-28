@@ -18,7 +18,7 @@ export default async function OutgoingPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Form Bahan Keluar (Usage / Masak)</h1>
         <p className="text-gray-500">
-            Catat penggunaan bahan dapur manual atau <strong>Pilih Menu Masakan</strong> untuk pengurangan stok otomatis berdasarkan resep.
+            <strong>Pilih Menu Masakan</strong> untuk pengurangan stok otomatis berdasarkan resep.
         </p>
       </div>
       

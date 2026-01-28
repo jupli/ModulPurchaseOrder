@@ -96,7 +96,13 @@ export default function Sidebar() {
                 href="/recipes" 
                 className={`p-2 text-sm hover:bg-gray-800 rounded ${pathname === '/recipes' ? 'bg-gray-800' : ''}`}
               >
-                4. Daftar Menu (Resep)
+                4. Jadwal Masak Menu
+              </Link>
+              <Link 
+                href="/distribution" 
+                className={`p-2 text-sm hover:bg-gray-800 rounded ${pathname === '/distribution' ? 'bg-gray-800' : ''}`}
+              >
+                5. Distribusi & QC
               </Link>
             </div>
           )}

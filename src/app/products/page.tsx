@@ -158,6 +158,8 @@ export default function ProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Pembelian</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Pemakaian</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                     </tr>
@@ -263,6 +265,8 @@ export default function ProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Pembelian</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Pemakaian</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                     </tr>
@@ -311,6 +315,12 @@ function ProductRow({ product, showCategory = false, onEdit }: { product: any, s
             ) : (
                  <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{product.description}</td>
             )}
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {product.lastPurchaseDate ? new Date(product.lastPurchaseDate).toLocaleDateString('id-ID') : '-'}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {product.lastUsageDate ? new Date(product.lastUsageDate).toLocaleDateString('id-ID') : '-'}
+            </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                 product.quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'

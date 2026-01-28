@@ -42,6 +42,7 @@ export default function PurchaseSubmissionPage() {
         setIsGenerating(true)
 
         // Archive PDF Logic
+        let archivePath: string | undefined
         const input = document.getElementById('pdf-content')
         if (input) {
              const canvas = await html2canvas(input, { 
@@ -66,14 +67,17 @@ export default function PurchaseSubmissionPage() {
              formData.append('filename', `${currentRequest.requestNumber}.pdf`)
              
              try {
-               await archiveDocument(formData)
+               const archiveResult = await archiveDocument(formData)
+               if (archiveResult.success) {
+                  archivePath = archiveResult.path
+               }
              } catch (error) {
                console.error('Failed to archive document:', error)
                alert('Gagal mengarsipkan dokumen PDF, namun proses pembuatan PO akan dilanjutkan.')
              }
         }
 
-        const result = await generatePOsFromRequest(currentRequest.requestNumber, currentRequest.items)
+        const result = await generatePOsFromRequest(currentRequest.requestNumber, currentRequest.items, archivePath)
         
         if (result.success) {
           alert(result.message)

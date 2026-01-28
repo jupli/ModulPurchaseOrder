@@ -94,27 +94,33 @@ const initialRequests: Request[] = [
 export function PurchasingProvider({ children }: { children: ReactNode }) {
   const [requests, setRequests] = useState<Request[]>(initialRequests)
 
-  // Auto-extract recipes for requests that are already in 'purchase' status (e.g. initial data)
+  // Auto-extract recipes removed to prevent duplication on mount/refresh
+  // Triggered explicitly via actions instead
+  /*
   useEffect(() => {
     requests.forEach(req => {
       if (req.status === 'purchase') {
-        extractAndSaveRecipes(req.items)
+        extractAndSaveRecipes(req.items, req.date, req.id)
       }
     })
   }, [])
+  */
 
   const updateRequestStatus = (id: string, status: 'request' | 'purchase' | 'submission') => {
     setRequests(prev => prev.map(req => 
       req.id === id ? { ...req, status } : req
     ))
 
-    // Extract recipes when moving to purchase menu
+    // Removed automatic extraction side-effect here to prevent double-calling.
+    // Extraction is now handled explicitly in the component before calling this.
+    /*
     if (status === 'purchase') {
       const req = requests.find(r => r.id === id)
       if (req) {
-        extractAndSaveRecipes(req.items)
+        extractAndSaveRecipes(req.items, req.date, req.id)
       }
     }
+    */
   }
 
   const rejectRequest = (id: string) => {

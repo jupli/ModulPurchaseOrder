@@ -64,6 +64,7 @@ model PurchaseOrder {
   status      POStatus @default(PENDING)
   totalAmount Float    @default(0)
   notes       String?
+  documentPath String? // Path to archived PDF
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -125,8 +126,11 @@ model StockMovement {
 
 model Recipe {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String       @unique // e.g., "Nasi Putih", "Ayam Tepung"
+  name        String       // Removed @unique to allow multiple batches of same menu
+  requestId   String?      // To prevent duplicate batches from same request
+  purchaseDate DateTime?   // Date from Purchase Request
   description String?
+  defaultPortion Int       @default(1)
   ingredients RecipeItem[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -141,4 +145,31 @@ model RecipeItem {
   quantity  Float   // Quantity required for the recipe
   unit      String  // Unit for the recipe (e.g., "gram", "ml")
   notes     String? // e.g., "±150 gram/porsi matang"
+}
+
+model DeliveryQueue {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  menuName  String
+  quantity  Int
+  cookDate  DateTime @default(now())
+  status    String   // PENDING_QC, READY_TO_SHIP, SHIPPED, REJECTED
+  
+  // QC Details
+  qcBy      String?
+  qcDate    DateTime?
+  qcStatus  String? // PASS, REJECT
+  qcNotes   String?
+  photoUrl  String? // Path to QC Photo
+  
+  // Shipping Details
+  shippedAt     DateTime?
+  senderName    String?
+  destination   String?
+  receiverName  String?
+  arrivalTime   DateTime?
+  senderSign    String? // Base64 or URL
+  receiverSign  String? // Base64 or URL
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

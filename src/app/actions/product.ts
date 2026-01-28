@@ -5,8 +5,40 @@ import { revalidatePath } from 'next/cache'
 
 export async function getProducts() {
   try {
-    return await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' }
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        // Get latest usage from StockMovement (OUT)
+        stockMovements: {
+          where: { type: 'OUT' },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        // Get latest purchase from PurchaseOrderItem -> PurchaseOrder
+        purchaseOrderItems: {
+          orderBy: { id: 'desc' }, // Latest created item
+          take: 1,
+          include: {
+            purchaseOrder: {
+              select: { date: true }
+            }
+          }
+        }
+      }
+    })
+
+    return products.map((product: any) => {
+      const lastUsage = product.stockMovements[0]
+      const lastPOItem = product.purchaseOrderItems[0]
+      
+      // Clean up the object
+      const { stockMovements, purchaseOrderItems, ...rest } = product
+      
+      return {
+        ...rest,
+        lastPurchaseDate: lastPOItem?.purchaseOrder?.date || null,
+        lastUsageDate: lastUsage?.createdAt || null
+      }
     })
   } catch (error) {
     console.error('Database Error:', error)

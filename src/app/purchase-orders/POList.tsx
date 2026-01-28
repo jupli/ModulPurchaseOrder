@@ -93,6 +93,7 @@ export default function POList({ purchaseOrders }: { purchaseOrders: PurchaseOrd
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail Item</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Item</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Nilai</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumen</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
               </tr>
@@ -115,6 +116,25 @@ export default function POList({ purchaseOrders }: { purchaseOrders: PurchaseOrd
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 align-top">{po.items.length} items</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 align-top">
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(po.totalAmount))}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 align-top">
+                    {/* @ts-ignore */}
+                    {po.documentPath ? (
+                      <a 
+                        // @ts-ignore
+                        href={po.documentPath} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-red-600 hover:text-red-800 flex items-center font-medium"
+                      >
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        PDF
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap align-top">
                     <POStatusBadge status={po.status} />

@@ -13,7 +13,7 @@ interface RequestItem {
   category?: string
 }
 
-export async function generatePOsFromRequest(requestNumber: string, items: RequestItem[]) {
+export async function generatePOsFromRequest(requestNumber: string, items: RequestItem[], documentPath?: string) {
   try {
     // 1. Group items by Supplier Category
     const itemsByCategory: Record<string, RequestItem[]> = {}
@@ -64,7 +64,8 @@ export async function generatePOsFromRequest(requestNumber: string, items: Reque
           date: new Date(),
           status: 'PENDING',
           totalAmount: totalAmount,
-          notes: `Generated from Request ${requestNumber}`
+          notes: `Generated from Request ${requestNumber}`,
+          documentPath: documentPath || null
         }
       })
 

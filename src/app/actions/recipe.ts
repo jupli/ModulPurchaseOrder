@@ -4,7 +4,7 @@
 import { prisma } from '@/lib/prisma'
 import { MovementType } from '@prisma/client'
 
-export async function extractAndSaveRecipes(items: any[]) {
+export async function extractAndSaveRecipes(items: any[], date?: string, requestId?: string) {
   try {
     // 1. Group items by category (which is the Menu Name)
     const groupedItems: { [key: string]: { items: any[], portions: number } } = {}
@@ -29,58 +29,69 @@ export async function extractAndSaveRecipes(items: any[]) {
     for (const [menuName, data] of Object.entries(groupedItems)) {
       const { items: ingredients, portions } = data
 
-      // Check if recipe already exists to avoid duplicates
-      const existingRecipe = await prisma.recipe.findUnique({
-        where: { name: menuName }
-      })
-
-      if (!existingRecipe) {
-        // Create new Recipe
-        await prisma.recipe.create({
-          data: {
-            name: menuName,
-            description: `Auto-generated from purchase request (Base yield: ${portions} porsi)`,
-            ingredients: {
-              create: await Promise.all(ingredients.map(async (ing) => {
-                // Ensure product exists or find it
-                let product = await prisma.product.findUnique({
-                  where: { sku: ing.name.toUpperCase().replace(/\s+/g, '_') }
-                })
-
-                if (!product) {
-                    // Try finding by name if SKU fails
-                    product = await prisma.product.findFirst({
-                        where: { name: ing.name }
-                    })
-                }
-                
-                // If still no product, create a temporary one (optional, or skip)
-                if (!product) {
-                   product = await prisma.product.create({
-                     data: {
-                       name: ing.name,
-                       sku: ing.name.toUpperCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substr(2, 5),
-                       unit: ing.unit,
-                       quantity: 0
-                     }
-                   })
-                }
-
-                // Calculate quantity per 1 portion
-                const qtyPerPortion = parseFloat(ing.quantity) / portions
-
-                return {
-                  productId: product.id,
-                  quantity: qtyPerPortion,
-                  unit: ing.unit,
-                  notes: ing.notes
-                }
-              }))
+      // Check if already exists for this request to prevent duplicates
+      if (requestId) {
+        const existing = await prisma.recipe.findFirst({
+            where: {
+                name: menuName,
+                requestId: requestId
             }
-          }
         })
-        console.log(`Created recipe: ${menuName} (Base: ${portions} portions)`)
+        if (existing) {
+            console.log(`Skipping duplicate recipe batch: ${menuName} (Request: ${requestId})`)
+            continue
+        }
       }
+
+      // Always create a new Recipe (Batch) to support FIFO
+      // Link it with purchaseDate
+      await prisma.recipe.create({
+        data: {
+          name: menuName,
+          defaultPortion: portions,
+          purchaseDate: date ? new Date(date) : new Date(),
+          requestId: requestId,
+          description: `Auto-generated from purchase request (Base yield: ${portions} porsi)`,
+          ingredients: {
+            create: await Promise.all(ingredients.map(async (ing) => {
+              // Ensure product exists or find it
+              let product = await prisma.product.findUnique({
+                where: { sku: ing.name.toUpperCase().replace(/\s+/g, '_') }
+              })
+
+              if (!product) {
+                  // Try finding by name if SKU fails
+                  product = await prisma.product.findFirst({
+                      where: { name: ing.name }
+                  })
+              }
+              
+              // If still no product, create a temporary one (optional, or skip)
+              if (!product) {
+                 product = await prisma.product.create({
+                   data: {
+                     name: ing.name,
+                     sku: ing.name.toUpperCase().replace(/\s+/g, '_') + '_' + Math.random().toString(36).substr(2, 5),
+                     unit: ing.unit,
+                     quantity: 0
+                   }
+                 })
+              }
+
+              // Calculate quantity per 1 portion
+              const qtyPerPortion = parseFloat(ing.quantity) / portions
+
+              return {
+                productId: product.id,
+                quantity: qtyPerPortion,
+                unit: ing.unit,
+                notes: ing.notes
+              }
+            }))
+          }
+        }
+      })
+      console.log(`Created recipe batch: ${menuName} (Date: ${date})`)
     }
 
     return { success: true }
@@ -100,7 +111,7 @@ export async function getRecipes() {
           }
         }
       },
-      orderBy: { name: 'asc' }
+      orderBy: { purchaseDate: 'asc' } // FIFO: Oldest purchase date first
     })
     return { success: true, recipes }
   } catch (error) {
@@ -167,6 +178,21 @@ export async function cookMenu(recipeId: string, portions: number) {
           }
         })
       }
+
+      // Delete the recipe batch after cooking (consumed)
+      await tx.recipe.delete({
+        where: { id: recipeId }
+      })
+
+      // 3. Add to Delivery Queue
+      await tx.deliveryQueue.create({
+        data: {
+          menuName: recipe.name,
+          quantity: portions,
+          status: 'PENDING_QC',
+          cookDate: new Date()
+        }
+      })
     })
 
     return { success: true }

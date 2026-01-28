@@ -42,7 +42,7 @@ export default function MaterialRequestPage() {
     const request = requests.find(r => r.id === requestId)
     if (request) {
         // 2. Extract recipes automatically
-        await extractAndSaveRecipes(request.items)
+        await extractAndSaveRecipes(request.items, request.date, request.id)
     }
 
     // 3. Proceed with existing logic

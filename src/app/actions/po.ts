@@ -72,6 +72,53 @@ export async function getPurchaseOrderById(id: string) {
   }
 }
 
+export async function getReceivedPurchaseOrders() {
+  try {
+    const orders = await prisma.purchaseOrder.findMany({
+      where: { status: 'RECEIVED' },
+      include: {
+        supplier: true,
+        items: {
+          include: {
+            product: true
+          }
+        },
+        goodsReceipt: {
+          include: {
+            items: true
+          }
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
+    })
+
+    return orders.map((order: any) => ({
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      items: order.items.map((item: any) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.total),
+        product: item.product ? {
+          ...item.product,
+          price: Number(item.product.price)
+        } : null
+      })),
+      goodsReceipt: order.goodsReceipt ? {
+        ...order.goodsReceipt,
+        items: order.goodsReceipt.items.map((item: any) => ({
+            ...item,
+            quantity: Number(item.quantity),
+            quantityRejected: Number(item.quantityRejected)
+        }))
+      } : null
+    }))
+  } catch (error) {
+    console.error('Database Error:', error)
+    return []
+  }
+}
+
 export async function getPurchaseOrdersByStatus(status: POStatus) {
   try {
     const orders = await prisma.purchaseOrder.findMany({

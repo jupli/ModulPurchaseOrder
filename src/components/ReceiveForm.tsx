@@ -18,7 +18,15 @@ export default function ReceiveForm({ po }: { po: any }) {
     notes: ''
   })
 
-  const [items, setItems] = useState(po.items.map((item: any) => ({
+  const [items, setItems] = useState<{
+    poItemId: string
+    productId: string
+    productName: string
+    productCategory: string
+    quantity: number | string
+    quantityRejected: number | string
+    condition: string
+  }[]>(po.items.map((item: any) => ({
     poItemId: item.id,
     productId: item.productId,
     productName: item.product.name,
@@ -181,10 +189,11 @@ export default function ReceiveForm({ po }: { po: any }) {
                                     <input 
                                     type="number" 
                                     min="0"
+                                    step="any"
                                     value={item.quantity}
                                     onChange={(e) => {
                                         const newItems = [...items]
-                                        newItems[originalIndex].quantity = Number(e.target.value)
+                                        newItems[originalIndex].quantity = e.target.value
                                         setItems(newItems)
                                     }}
                                     className="w-24 border border-gray-300 rounded-md px-2 py-1"
@@ -194,10 +203,11 @@ export default function ReceiveForm({ po }: { po: any }) {
                                     <input 
                                     type="number" 
                                     min="0"
+                                    step="any"
                                     value={item.quantityRejected}
                                     onChange={(e) => {
                                         const newItems = [...items]
-                                        newItems[originalIndex].quantityRejected = Number(e.target.value)
+                                        newItems[originalIndex].quantityRejected = e.target.value
                                         setItems(newItems)
                                     }}
                                     className="w-24 border border-red-300 rounded-md px-2 py-1 bg-red-50"
