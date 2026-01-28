@@ -8,7 +8,7 @@ export default async function OutgoingPage() {
     getRecipes()
   ])
   
-  const recipes = recipesResult.success ? recipesResult.recipes : []
+  const recipes = (recipesResult.success && recipesResult.recipes) ? recipesResult.recipes : []
   
   // Sort products by name for better UX
   const sortedProducts = products.sort((a: any, b: any) => a.name.localeCompare(b.name))

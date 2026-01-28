@@ -48,7 +48,7 @@ export default function DistributionArchive({ historyItems }: DistributionArchiv
         </div>
       ) : (
         <div className="divide-y divide-gray-200">
-          {Object.entries(groupedData).map(([date, items]: [string, any[]]) => (
+          {Object.entries(groupedData).map(([date, items]: [string, any]) => (
             <div key={date} className="bg-white">
               {/* Folder Header */}
               <button 

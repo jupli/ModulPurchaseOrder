@@ -23,8 +23,8 @@ export async function getPurchaseOrders() {
       totalAmount: Number(order.totalAmount),
       items: order.items.map((item: any) => ({
         ...item,
-        unitPrice: Number(item.unitPrice),
-        total: Number(item.total),
+        unitPrice: Number(item.price),
+        total: Number(item.quantity * item.price),
         product: item.product ? {
           ...item.product,
           price: Number(item.product.price)
@@ -58,8 +58,8 @@ export async function getPurchaseOrderById(id: string) {
       totalAmount: Number(order.totalAmount),
       items: order.items.map((item: any) => ({
         ...item,
-        unitPrice: Number(item.unitPrice),
-        total: Number(item.total),
+        unitPrice: Number(item.price),
+        total: Number(item.quantity * item.price),
         product: item.product ? {
           ...item.product,
           price: Number(item.product.price)
@@ -97,8 +97,8 @@ export async function getReceivedPurchaseOrders() {
       totalAmount: Number(order.totalAmount),
       items: order.items.map((item: any) => ({
         ...item,
-        unitPrice: Number(item.unitPrice),
-        total: Number(item.total),
+        unitPrice: Number(item.price),
+        total: Number(item.quantity * item.price),
         product: item.product ? {
           ...item.product,
           price: Number(item.product.price)
@@ -139,8 +139,8 @@ export async function getPurchaseOrdersByStatus(status: POStatus) {
       totalAmount: Number(order.totalAmount),
       items: order.items.map((item: any) => ({
         ...item,
-        unitPrice: Number(item.unitPrice),
-        total: Number(item.total),
+        unitPrice: Number(item.price),
+        total: Number(item.quantity * item.price),
         product: item.product ? {
           ...item.product,
           price: Number(item.product.price)
@@ -225,7 +225,7 @@ export async function createGoodsReceipt(data: {
       if (rejectedItems.length > 0) {
         const newPOItems = rejectedItems.map((rejItem: any) => {
              const originalItem = po.items.find((i: any) => i.productId === rejItem.productId)
-             const unitPrice = originalItem ? Number(originalItem.unitPrice) : 0
+             const unitPrice = originalItem ? Number(originalItem.price) : 0
              const qty = Number(rejItem.quantityRejected)
              return {
                  productId: rejItem.productId,
@@ -252,8 +252,7 @@ export async function createGoodsReceipt(data: {
                     create: newPOItems.map((item: any) => ({
                         productId: item.productId,
                         quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        total: item.total
+                        price: item.unitPrice
                     }))
                 }
             }
@@ -295,8 +294,7 @@ export async function createPurchaseOrder(data: {
           create: data.items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: item.quantity * item.unitPrice
+            price: item.unitPrice
           }))
         }
       }
@@ -366,24 +364,21 @@ export async function updatePurchaseOrderItems(poId: string, items: { id: string
   try {
     await prisma.$transaction(async (tx: any) => {
        for (const item of items) {
-         // Get current item to get unitPrice
+         // Get current item to get price
          const currentItem = await tx.purchaseOrderItem.findUnique({ where: { id: item.id } })
          if (!currentItem) continue
-         
-         const newTotal = item.quantity * currentItem.unitPrice
          
          await tx.purchaseOrderItem.update({
            where: { id: item.id },
            data: {
-             quantity: item.quantity,
-             total: newTotal
+             quantity: item.quantity
            }
          })
        }
        
        // Recalculate PO Total
        const allItems = await tx.purchaseOrderItem.findMany({ where: { purchaseOrderId: poId } })
-       const totalAmount = allItems.reduce((sum: number, item: any) => sum + item.total, 0)
+       const totalAmount = allItems.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0)
        
        await tx.purchaseOrder.update({
          where: { id: poId },

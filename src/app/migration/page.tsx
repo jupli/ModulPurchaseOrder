@@ -146,7 +146,7 @@ export default async function MigrationPage() {
         const randomSuffix = Math.floor(Math.random() * 1000)
         const poNumber = `PO-${new Date().getFullYear()}-${(count + 1).toString().padStart(3, '0')}-${supplier.name.substring(0, 3).toUpperCase()}-${randomSuffix}`
         
-        const totalAmount = items.reduce((sum: number, item: any) => sum + item.total, 0)
+        const totalAmount = items.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0)
 
         const newPO = await prisma.purchaseOrder.create({
           data: {
@@ -175,7 +175,7 @@ export default async function MigrationPage() {
       } else {
         // Recalculate total for old PO
         const currentItems = await prisma.purchaseOrderItem.findMany({ where: { purchaseOrderId: po.id } })
-        const newTotal = currentItems.reduce((sum: number, item: any) => sum + item.total, 0)
+        const newTotal = currentItems.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0)
         await prisma.purchaseOrder.update({
           where: { id: po.id },
           data: { totalAmount: newTotal }
@@ -224,7 +224,7 @@ export default async function MigrationPage() {
 
         // Recalculate Master Total
         const allItems = await prisma.purchaseOrderItem.findMany({ where: { purchaseOrderId: masterPO.id } })
-        const newTotal = allItems.reduce((sum: number, item: any) => sum + item.total, 0)
+        const newTotal = allItems.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0)
         
         await prisma.purchaseOrder.update({
           where: { id: masterPO.id },
@@ -261,14 +261,12 @@ export default async function MigrationPage() {
                     const duplicates = items.slice(1)
                     
                     const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0)
-                    const totalVal = items.reduce((sum: number, i: any) => sum + i.total, 0)
 
                     // Update master item
                     await prisma.purchaseOrderItem.update({
                         where: { id: masterItem.id },
                         data: {
-                            quantity: totalQty,
-                            total: totalVal
+                            quantity: totalQty
                         }
                     })
 
