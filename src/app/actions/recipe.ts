@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { MovementType } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
 
 export async function extractAndSaveRecipes(items: any[], date?: string, requestId?: string) {
   try {
@@ -94,6 +95,7 @@ export async function extractAndSaveRecipes(items: any[], date?: string, request
       console.log(`Created recipe batch: ${menuName} (Date: ${date})`)
     }
 
+    revalidatePath('/inventory/outgoing')
     return { success: true }
   } catch (error) {
     console.error('Error saving recipes:', error)
@@ -195,6 +197,7 @@ export async function cookMenu(recipeId: string, portions: number) {
       })
     })
 
+    revalidatePath('/inventory/outgoing')
     return { success: true }
   } catch (error) {
     console.error('Error cooking menu:', error)

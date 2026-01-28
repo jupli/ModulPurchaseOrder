@@ -2,6 +2,8 @@ import { getProducts } from '@/app/actions/product'
 import { getRecipes } from '@/app/actions/recipe'
 import OutgoingForm from '@/components/OutgoingForm'
 
+export const dynamic = 'force-dynamic'
+
 export default async function OutgoingPage() {
   const [products, recipesResult] = await Promise.all([
     getProducts(),
