@@ -1,6 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { extractAndSaveRecipes } from '@/app/actions/recipe'
 
 export interface Item {
   id: string
@@ -93,10 +94,27 @@ const initialRequests: Request[] = [
 export function PurchasingProvider({ children }: { children: ReactNode }) {
   const [requests, setRequests] = useState<Request[]>(initialRequests)
 
+  // Auto-extract recipes for requests that are already in 'purchase' status (e.g. initial data)
+  useEffect(() => {
+    requests.forEach(req => {
+      if (req.status === 'purchase') {
+        extractAndSaveRecipes(req.items)
+      }
+    })
+  }, [])
+
   const updateRequestStatus = (id: string, status: 'request' | 'purchase' | 'submission') => {
     setRequests(prev => prev.map(req => 
       req.id === id ? { ...req, status } : req
     ))
+
+    // Extract recipes when moving to purchase menu
+    if (status === 'purchase') {
+      const req = requests.find(r => r.id === id)
+      if (req) {
+        extractAndSaveRecipes(req.items)
+      }
+    }
   }
 
   const rejectRequest = (id: string) => {

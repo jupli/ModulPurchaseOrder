@@ -69,7 +69,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const name = formData.get('name') as string
   const sku = formData.get('sku') as string
   const description = formData.get('description') as string
-  const quantity = parseInt(formData.get('quantity') as string) || 0
+  // Quantity cannot be updated directly via edit to maintain stock integrity
   const price = parseFloat(formData.get('price') as string) || 0
   const unit = formData.get('unit') as string
 
@@ -80,7 +80,6 @@ export async function updateProduct(id: string, formData: FormData) {
         name,
         sku,
         description,
-        quantity,
         price,
         unit
       }

@@ -4,6 +4,9 @@ import { usePurchasing } from '@/context/PurchasingContext'
 import { useState, useRef } from 'react'
 import SignatureCanvas from 'react-signature-canvas'
 import { generatePOsFromRequest } from '@/app/actions/generate-po'
+import { archiveDocument } from '@/app/actions/archive'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 export default function PurchaseSubmissionPage() {
   const { requests, rejectRequest, updateRequestSignature } = usePurchasing()
@@ -37,6 +40,39 @@ export default function PurchaseSubmissionPage() {
     if (confirm('Apakah Anda yakin ingin membuat Purchase Order dari pengajuan ini?')) {
       try {
         setIsGenerating(true)
+
+        // Archive PDF Logic
+        const input = document.getElementById('pdf-content')
+        if (input) {
+             const canvas = await html2canvas(input, { 
+               scale: 1.5,
+               backgroundColor: '#ffffff',
+               useCORS: true,
+               logging: false
+             })
+             const imgData = canvas.toDataURL('image/jpeg', 0.95)
+             const pdf = new jsPDF('p', 'mm', 'a4')
+             const pdfWidth = pdf.internal.pageSize.getWidth()
+             const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+             
+             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+             const pdfBlob = pdf.output('blob')
+             
+             const formData = new FormData()
+             formData.append('file', pdfBlob)
+             // Use today's date as approval date
+             const approvalDate = new Date().toISOString().split('T')[0]
+             formData.append('date', approvalDate)
+             formData.append('filename', `${currentRequest.requestNumber}.pdf`)
+             
+             try {
+               await archiveDocument(formData)
+             } catch (error) {
+               console.error('Failed to archive document:', error)
+               alert('Gagal mengarsipkan dokumen PDF, namun proses pembuatan PO akan dilanjutkan.')
+             }
+        }
+
         const result = await generatePOsFromRequest(currentRequest.requestNumber, currentRequest.items)
         
         if (result.success) {
@@ -124,16 +160,16 @@ export default function PurchaseSubmissionPage() {
             </div>
             <div className="flex-1 overflow-y-auto p-8 bg-gray-50 print:p-0 print:bg-white print:overflow-visible print:h-auto">
                {/* Simulated PDF Content */}
-               <div className="bg-white shadow-lg p-8 min-h-[800px] mx-auto max-w-[800px] print:shadow-none print:p-0 print:mx-0 print:min-h-0 print:max-w-none">
-                 <div className="text-center mb-8 border-b pb-8">
-                   <h1 className="text-3xl font-bold text-gray-900 mb-2">ORDER PEMBELIAN</h1>
-                   <p className="text-gray-500">No: {requests.find(r => r.id === selectedPdf)?.requestNumber}</p>
-                   <p className="text-gray-500">Tanggal: {requests.find(r => r.id === selectedPdf)?.date}</p>
+               <div id="pdf-content" className="shadow-lg p-8 min-h-[800px] mx-auto max-w-[800px] print:shadow-none print:p-0 print:mx-0 print:min-h-0 print:max-w-none" style={{ backgroundColor: '#ffffff', color: '#111827' }}>
+                 <div className="text-center mb-8 border-b pb-8" style={{ borderColor: '#e5e7eb' }}>
+                   <h1 className="text-3xl font-bold mb-2" style={{ color: '#111827' }}>ORDER PEMBELIAN</h1>
+                   <p style={{ color: '#6b7280' }}>No: {requests.find(r => r.id === selectedPdf)?.requestNumber}</p>
+                   <p style={{ color: '#6b7280' }}>Tanggal: {requests.find(r => r.id === selectedPdf)?.date}</p>
                  </div>
                  
-                 <table className="w-full mb-8">
+                 <table className="w-full mb-8" style={{ color: '#111827' }}>
                    <thead>
-                     <tr className="border-b-2 border-gray-300">
+                     <tr className="border-b-2" style={{ borderColor: '#d1d5db' }}>
                        <th className="text-left py-3 font-bold">Item</th>
                        <th className="text-right py-3 font-bold">Qty</th>
                        <th className="text-right py-3 font-bold">Harga Satuan</th>
@@ -142,10 +178,10 @@ export default function PurchaseSubmissionPage() {
                    </thead>
                    <tbody>
                      {requests.find(r => r.id === selectedPdf)?.items.map((item, idx) => (
-                       <tr key={idx} className="border-b border-gray-100">
+                       <tr key={idx} className="border-b" style={{ borderColor: '#f3f4f6' }}>
                          <td className="py-3">
                            <div className="font-medium">{item.name}</div>
-                           <div className="text-sm text-gray-500">{item.category}</div>
+                           <div className="text-sm" style={{ color: '#6b7280' }}>{item.category}</div>
                          </td>
                          <td className="text-right py-3">{item.quantity} {item.unit}</td>
                          <td className="text-right py-3">
@@ -160,7 +196,7 @@ export default function PurchaseSubmissionPage() {
                    <tfoot>
                      <tr>
                        <td colSpan={3} className="text-right py-4 font-bold text-xl">Grand Total</td>
-                       <td className="text-right py-4 font-bold text-xl text-blue-600">
+                       <td className="text-right py-4 font-bold text-xl" style={{ color: '#2563eb' }}>
                          {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(
                            requests.find(r => r.id === selectedPdf)?.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) || 0
                          )}
@@ -174,29 +210,31 @@ export default function PurchaseSubmissionPage() {
                      <p className="mb-8">Dibuat Oleh,</p>
                      <div 
                        onClick={() => setSigningRole('purchasing')} 
-                       className="h-24 flex items-center justify-center cursor-pointer border border-dashed border-gray-300 hover:bg-gray-50 mb-2 relative group print:border-none"
+                       className="h-24 flex items-center justify-center cursor-pointer border border-dashed mb-2 relative group print:border-none"
+                       style={{ borderColor: '#d1d5db' }}
                      >
                         {currentRequest?.purchasingSignature ? (
                           <img src={currentRequest.purchasingSignature} alt="Signature" className="h-full w-auto object-contain" />
                         ) : (
-                          <div className="text-xs text-gray-400 group-hover:text-gray-600 print:hidden">Klik untuk tanda tangan</div>
+                          <div className="text-xs print:hidden" style={{ color: '#9ca3af' }}>Klik untuk tanda tangan</div>
                         )}
                      </div>
-                     <p className="font-bold border-t border-black pt-2">Purchasing</p>
+                     <p className="font-bold border-t pt-2" style={{ borderColor: '#000000' }}>Purchasing</p>
                    </div>
                    <div className="text-center w-48 relative">
                      <p className="mb-8">Disetujui Oleh,</p>
                      <div 
                        onClick={() => setSigningRole('manager')} 
-                       className="h-24 flex items-center justify-center cursor-pointer border border-dashed border-gray-300 hover:bg-gray-50 mb-2 relative group print:border-none"
+                       className="h-24 flex items-center justify-center cursor-pointer border border-dashed mb-2 relative group print:border-none"
+                       style={{ borderColor: '#d1d5db' }}
                      >
                         {currentRequest?.managerSignature ? (
                           <img src={currentRequest.managerSignature} alt="Signature" className="h-full w-auto object-contain" />
                         ) : (
-                          <div className="text-xs text-gray-400 group-hover:text-gray-600 print:hidden">Klik untuk tanda tangan</div>
+                          <div className="text-xs print:hidden" style={{ color: '#9ca3af' }}>Klik untuk tanda tangan</div>
                         )}
                      </div>
-                     <p className="font-bold border-t border-black pt-2">Manager</p>
+                     <p className="font-bold border-t pt-2" style={{ borderColor: '#000000' }}>Manager</p>
                    </div>
                 </div>
                </div>

@@ -92,6 +92,12 @@ export default function Sidebar() {
               >
                 3. Stock Bahan
               </Link>
+              <Link 
+                href="/recipes" 
+                className={`p-2 text-sm hover:bg-gray-800 rounded ${pathname === '/recipes' ? 'bg-gray-800' : ''}`}
+              >
+                4. Daftar Menu (Resep)
+              </Link>
             </div>
           )}
         </div>

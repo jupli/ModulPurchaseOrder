@@ -160,7 +160,6 @@ export default function ProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -169,7 +168,7 @@ export default function ProductsPage() {
                     ))}
                     {globalFilteredProducts.length === 0 && (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                            <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                                 No products found.
                             </td>
                         </tr>
@@ -191,7 +190,12 @@ export default function ProductsPage() {
                         >
                             <div className="text-6xl mb-4">📁</div>
                             <h3 className="text-xl font-bold text-gray-800">{cat}</h3>
-                            <p className="text-gray-500 mt-2">{products.filter(p => p.category === cat).length} Items</p>
+                            <div className="mt-2 text-center">
+                                <p className="text-gray-500 text-sm">{products.filter(p => p.category === cat).length} Jenis Barang</p>
+                                <p className={`text-xs font-bold ${products.filter(p => p.category === cat).reduce((sum, p) => sum + p.quantity, 0) > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                    Total Stok: {products.filter(p => p.category === cat).reduce((sum, p) => sum + p.quantity, 0)}
+                                </p>
+                            </div>
                         </div>
                     ))}
                     {/* "Uncategorized" Folder if any */}
@@ -206,9 +210,14 @@ export default function ProductsPage() {
                         >
                             <div className="text-6xl mb-4">📁</div>
                             <h3 className="text-xl font-bold text-gray-800">Lain-lain</h3>
-                            <p className="text-gray-500 mt-2">
-                                {products.filter(p => !p.category || (p.category !== 'Bahan Kering' && p.category !== 'Bahan Basah')).length} Items
-                            </p>
+                            <div className="mt-2 text-center">
+                                <p className="text-gray-500 text-sm">
+                                    {products.filter(p => !p.category || (p.category !== 'Bahan Kering' && p.category !== 'Bahan Basah')).length} Jenis Barang
+                                </p>
+                                <p className={`text-xs font-bold ${products.filter(p => !p.category || (p.category !== 'Bahan Kering' && p.category !== 'Bahan Basah')).reduce((sum, p) => sum + p.quantity, 0) > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                    Total Stok: {products.filter(p => !p.category || (p.category !== 'Bahan Kering' && p.category !== 'Bahan Basah')).reduce((sum, p) => sum + p.quantity, 0)}
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -220,10 +229,12 @@ export default function ProductsPage() {
                     {/* @ts-ignore */}
                     {CATEGORY_STRUCTURE[selectedCategory]?.map((subCat: string) => {
                         // Count items matching this subcategory keyword
-                        const count = products.filter(p => 
+                        const matchingProducts = products.filter(p => 
                             p.category === selectedCategory && 
                             p.name.toLowerCase().includes(subCat.toLowerCase())
-                        ).length
+                        )
+                        const count = matchingProducts.length
+                        const totalStock = matchingProducts.reduce((sum, p) => sum + p.quantity, 0)
 
                         return (
                             <div 
@@ -233,7 +244,10 @@ export default function ProductsPage() {
                             >
                                 <div className="text-4xl mb-2">📂</div>
                                 <h4 className="font-semibold text-gray-700">{subCat}</h4>
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full mt-2 text-gray-600">{count} items</span>
+                                <div className="mt-2 flex flex-col gap-1">
+                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">{count} Jenis</span>
+                                    <span className={`text-xs font-bold ${totalStock > 0 ? 'text-green-600' : 'text-red-500'}`}>Stok: {totalStock}</span>
+                                </div>
                             </div>
                         )
                     })}
@@ -251,7 +265,6 @@ export default function ProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -265,7 +278,7 @@ export default function ProductsPage() {
                     }
                     {((selectedCategory !== 'Lain-lain' && getFolderFilteredItems().length === 0) || (selectedCategory === 'Lain-lain' && products.filter(p => !p.category || (p.category !== 'Bahan Kering' && p.category !== 'Bahan Basah')).length === 0)) && (
                     <tr>
-                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                        <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                             No items found in this folder.
                         </td>
                     </tr>
@@ -307,9 +320,6 @@ function ProductRow({ product, showCategory = false, onEdit }: { product: any, s
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(product.price))}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <button onClick={() => onEdit(product)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
             </td>
         </tr>
     )
@@ -356,8 +366,18 @@ function EditProductModal({ product, isOpen, onClose, onSuccess }: { product: an
             </div>
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">Quantity</label>
-            <input defaultValue={product.quantity} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quantity" name="quantity" type="number" required />
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">Quantity (Stok)</label>
+            <input 
+                defaultValue={product.quantity} 
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 bg-gray-100 leading-tight focus:outline-none focus:shadow-outline cursor-not-allowed" 
+                id="quantity" 
+                name="quantity" 
+                type="number" 
+                disabled 
+            />
+            <p className="text-xs text-red-500 mt-1 italic">
+                * Stok tidak dapat diedit manual. Gunakan menu Penerimaan/Pengeluaran Barang.
+            </p>
           </div>
           <div className="flex items-center justify-end gap-4">
             <button type="button" onClick={onClose} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Cancel</button>

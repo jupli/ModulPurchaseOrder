@@ -166,7 +166,7 @@ export async function createGoodsReceipt(data: {
                 type: MovementType.IN,
                 quantity: item.quantity,
                 reference: `${po.poNumber} / ${data.doNumber}`,
-                description: `Received via Goods Receipt (DO: ${data.doNumber})`
+                notes: `Received via Goods Receipt (DO: ${data.doNumber})`
               }
             })
         }
@@ -295,7 +295,7 @@ export async function updatePOStatus(id: string, status: POStatus) {
               type: MovementType.IN,
               quantity: item.quantity,
               reference: po.poNumber,
-              description: `Received from PO ${po.poNumber}`
+              notes: `Received from PO ${po.poNumber}`
             }
           })
         }

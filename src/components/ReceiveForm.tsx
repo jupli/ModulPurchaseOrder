@@ -19,6 +19,7 @@ export default function ReceiveForm({ po }: { po: any }) {
   })
 
   const [items, setItems] = useState(po.items.map((item: any) => ({
+    poItemId: item.id,
     productId: item.productId,
     productName: item.product.name,
     productCategory: item.product.category || 'Lain-lain',
@@ -170,12 +171,12 @@ export default function ReceiveForm({ po }: { po: any }) {
                         <tbody className="bg-white divide-y divide-gray-200">
                         {categoryItems.map((item: any) => {
                             // Find original index in full items array to update state correctly
-                            const originalIndex = items.findIndex((i: any) => i.productId === item.productId)
+                            const originalIndex = items.findIndex((i: any) => i.poItemId === item.poItemId)
                             
                             return (
-                                <tr key={item.productId}>
+                                <tr key={item.poItemId}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.productName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.items.find((i: any) => i.productId === item.productId)?.quantity || 0}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{po.items.find((i: any) => i.id === item.poItemId)?.quantity || 0}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <input 
                                     type="number" 

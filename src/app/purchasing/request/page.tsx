@@ -3,6 +3,7 @@
 import { useState, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePurchasing } from '@/context/PurchasingContext'
+import { extractAndSaveRecipes } from '@/app/actions/recipe'
 
 export default function MaterialRequestPage() {
   const router = useRouter()
@@ -36,7 +37,15 @@ export default function MaterialRequestPage() {
     }
   }
 
-  const handleSubmitToPurchase = (requestId: string) => {
+  const handleSubmitToPurchase = async (requestId: string) => {
+    // 1. Find the request object
+    const request = requests.find(r => r.id === requestId)
+    if (request) {
+        // 2. Extract recipes automatically
+        await extractAndSaveRecipes(request.items)
+    }
+
+    // 3. Proceed with existing logic
     updateRequestStatus(requestId, 'purchase')
     router.push('/purchasing/purchase')
   }

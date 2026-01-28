@@ -39,7 +39,7 @@ export async function createGoodsIssue(data: {
             type: MovementType.OUT,
             quantity: item.quantity,
             reference: data.reference || 'USAGE',
-            description: data.description
+            notes: data.description
           }
         })
       }

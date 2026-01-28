@@ -13,16 +13,16 @@ export const ITEM_CATEGORIES = {
   ],
   'Supplier Daging Ayam': [
     'Ayam negeri', 'Broiler', 'Ayam kampung', 'Ayam pejantan', 'Bebek', 'Itik', 'Entok',
-    'Kalkun', 'Puyuh', 'Hati ayam', 'Ampela', 'Usus'
+    'Kalkun', 'Puyuh', 'Hati ayam', 'Ampela', 'Usus', 'Ayam potong'
   ],
   'Supplier Daging Sapi': [
     'Daging sapi paha', 'Daging sapi has luar', 'Daging sapi has dalam',
     'Daging sapi sandung lamur', 'Brisket', 'Daging sapi sengkel', 'Daging sapi iga',
     'Daging sapi tetelan', 'Daging sapi giling', 'Hati sapi', 'Babad', 'Paruh', 'Limpa',
-    'Ginjal', 'Otak', 'Daging sapi'
+    'Ginjal', 'Otak sapi', 'Daging sapi'
   ],
   'Supplier Daging Kambing': [
-    'Daging kambing', 'Daging domba', 'Iga kambing', 'Hati kambing', 'Limpa', 'Ginjal', 'Otak'
+    'Daging kambing', 'Daging domba', 'Iga kambing', 'Hati kambing', 'Limpa', 'Ginjal', 'Otak kambing'
   ],
   'Supplier Daging Babi': [
     'Daging babi segar', 'Babi giling', 'Iga babi', 'Bacon', 'Ham', 'Daging babi'
