@@ -1,0 +1,210 @@
+⚠️ 1. Trigger Auto-Warning Bahan Hampir Expired
+Konsep
+
+Warning muncul jika sisa masa simpan ≤ X hari (misal 7 hari)
+
+Warning disimpan ke tabel khusus
+
+Bisa dipakai untuk dashboard / notifikasi
+
+1️⃣ Tabel Warning Expired
+CREATE TABLE warning_expired (
+    warning_id INT AUTO_INCREMENT PRIMARY KEY,
+    batch_id INT,
+    bahan_id INT,
+    tanggal_kadaluarsa DATE,
+    sisa_hari INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('aktif','selesai') DEFAULT 'aktif',
+    FOREIGN KEY (batch_id) REFERENCES batch(batch_id),
+    FOREIGN KEY (bahan_id) REFERENCES bahan(bahan_id)
+);
+
+2️⃣ Trigger Saat Barang Masuk
+
+Trigger ini otomatis cek expired ketika batch baru ditambahkan.
+
+DELIMITER $$
+
+CREATE TRIGGER trg_warning_expired_insert
+AFTER INSERT ON batch
+FOR EACH ROW
+BEGIN
+    DECLARE sisa INT;
+
+    SET sisa = DATEDIFF(NEW.tanggal_kadaluarsa, CURDATE());
+
+    IF sisa <= 7 THEN
+        INSERT INTO warning_expired (
+            batch_id,
+            bahan_id,
+            tanggal_kadaluarsa,
+            sisa_hari
+        ) VALUES (
+            NEW.batch_id,
+            NEW.bahan_id,
+            NEW.tanggal_kadaluarsa,
+            sisa
+        );
+    END IF;
+END$$
+
+DELIMITER ;
+
+3️⃣ Trigger Update (Jika Tanggal Expired Diubah)
+DELIMITER $$
+
+CREATE TRIGGER trg_warning_expired_update
+AFTER UPDATE ON batch
+FOR EACH ROW
+BEGIN
+    DECLARE sisa INT;
+
+    SET sisa = DATEDIFF(NEW.tanggal_kadaluarsa, CURDATE());
+
+    IF sisa <= 7 THEN
+        INSERT INTO warning_expired (
+            batch_id,
+            bahan_id,
+            tanggal_kadaluarsa,
+            sisa_hari
+        ) VALUES (
+            NEW.batch_id,
+            NEW.bahan_id,
+            NEW.tanggal_kadaluarsa,
+            sisa
+        );
+    END IF;
+END$$
+
+DELIMITER ;
+
+4️⃣ Query Dashboard Warning
+SELECT b.nama_bahan,
+       w.tanggal_kadaluarsa,
+       w.sisa_hari
+FROM warning_expired w
+JOIN bahan b ON w.bahan_id = b.bahan_id
+WHERE w.status = 'aktif'
+ORDER BY w.sisa_hari ASC;
+
+📊 2. Laporan Stok Segar vs Beku
+Definisi
+
+Segar → chiller
+
+Beku → freezer
+
+Kering → dry storage
+
+Query Laporan Stok Berdasarkan Jenis Penyimpanan
+SELECT 
+    jp.nama_jenis AS jenis_penyimpanan,
+    b.nama_bahan,
+    SUM(s.jumlah_stok) AS total_stok,
+    st.nama_satuan
+FROM stok s
+JOIN batch bt ON s.batch_id = bt.batch_id
+JOIN bahan b ON bt.bahan_id = b.bahan_id
+JOIN satuan st ON b.satuan_id = st.satuan_id
+JOIN jenis_penyimpanan jp ON b.jenis_penyimpanan_id = jp.jenis_penyimpanan_id
+GROUP BY jp.nama_jenis, b.nama_bahan, st.nama_satuan
+ORDER BY jp.nama_jenis;
+
+Contoh Output
+Jenis Penyimpanan	Nama Bahan	Total Stok	Satuan
+Chiller	Wortel	120	Kg
+Freezer	Daging Sapi	350	Kg
+Kering	Beras	2000	Kg
+Ringkasan Segar vs Beku (Untuk Grafik)
+SELECT 
+    jp.nama_jenis,
+    SUM(s.jumlah_stok) AS total_stok
+FROM stok s
+JOIN batch bt ON s.batch_id = bt.batch_id
+JOIN bahan b ON bt.bahan_id = b.bahan_id
+JOIN jenis_penyimpanan jp ON b.jenis_penyimpanan_id = jp.jenis_penyimpanan_id
+GROUP BY jp.nama_jenis;
+
+🧩 3. ERD Diagram (Siap Dicetak)
+Entitas & Relasi (Final)
+KATEGORI_BAHAN
+- kategori_id (PK)
+- nama_kategori
+
+JENIS_PENYIMPANAN
+- jenis_penyimpanan_id (PK)
+- nama_jenis
+- suhu_min
+- suhu_max
+
+SATUAN
+- satuan_id (PK)
+- nama_satuan
+
+BAHAN
+- bahan_id (PK)
+- kategori_id (FK)
+- satuan_id (FK)
+- jenis_penyimpanan_id (FK)
+
+SUPPLIER
+- supplier_id (PK)
+
+BATCH
+- batch_id (PK)
+- bahan_id (FK)
+- supplier_id (FK)
+- tanggal_kadaluarsa
+
+STOK
+- stok_id (PK)
+- batch_id (FK)
+- lokasi_id (FK)
+- jumlah_stok
+
+GUDANG
+- gudang_id (PK)
+
+LOKASI
+- lokasi_id (PK)
+- gudang_id (FK)
+- jenis_penyimpanan_id (FK)
+
+PENERIMAAN
+- penerimaan_id (PK)
+
+PENERIMAAN_DETAIL
+- detail_terima_id (PK)
+- penerimaan_id (FK)
+- batch_id (FK)
+
+PENGELUARAN
+- pengeluaran_id (PK)
+
+PENGELUARAN_DETAIL
+- detail_keluar_id (PK)
+- stok_id (FK)
+
+USERS
+- user_id (PK)
+
+WARNING_EXPIRED
+- warning_id (PK)
+- batch_id (FK)
+
+Relasi Utama (1 — N)
+
+kategori_bahan → bahan
+
+jenis_penyimpanan → bahan
+
+bahan → batch
+
+batch → stok
+
+gudang → lokasi
+
+penerimaan → penerimaan_detail
+
+pengeluaran → pengeluaran_detail
